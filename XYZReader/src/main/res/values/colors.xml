@@ -25,4 +25,6 @@
 
     <!--theme colors -->
     <color name="colorPrimary">#FF4500</color>
+    <color name="colorBlack">#000000</color>
+
 </resources>
