@@ -23,10 +23,10 @@ import java.util.ArrayList;
 public class UpdaterService extends IntentService {
     private static final String TAG = "UpdaterService";
 
-    public static final String BROADCAST_ACTION_STATE_CHANGE
-            = "com.example.xyzreader.intent.action.STATE_CHANGE";
-    public static final String EXTRA_REFRESHING
-            = "com.example.xyzreader.intent.extra.REFRESHING";
+    public static final String BROADCAST_ACTION_STATE_CHANGE = "com.example.xyzreader.intent.action.STATE_CHANGE";
+    public static final String EXTRA_REFRESHING = "com.example.xyzreader.intent.extra.REFRESHING";
+    public static final String NETWORK_PROBLEM = "com.example.xyzreader.intent.extra.NETWORK_ISSUE";
+    public static final String GENERIC_PROBLEM = "com.example.xyzreader.intent.extra.GENERIC_ISSUE";
 
     public UpdaterService() {
         super(TAG);
@@ -40,14 +40,17 @@ public class UpdaterService extends IntentService {
         NetworkInfo ni = cm.getActiveNetworkInfo();
         if (ni == null || !ni.isConnected()) {
             Log.w(TAG, "Not online, not refreshing.");
+            sendBroadcast(new Intent(BROADCAST_ACTION_STATE_CHANGE)
+                    .putExtra(EXTRA_REFRESHING,false)
+                    .putExtra(NETWORK_PROBLEM,true));
             return;
         }
 
-        sendStickyBroadcast(
-                new Intent(BROADCAST_ACTION_STATE_CHANGE).putExtra(EXTRA_REFRESHING, true));
+        sendBroadcast(new Intent(BROADCAST_ACTION_STATE_CHANGE)
+                        .putExtra(EXTRA_REFRESHING, true));
 
         // Don't even inspect the intent, we only do one thing, and that's fetch content.
-        ArrayList<ContentProviderOperation> cpo = new ArrayList<ContentProviderOperation>();
+        ArrayList<ContentProviderOperation> cpo = new ArrayList<>();
 
         Uri dirUri = ItemsContract.Items.buildDirUri();
 
@@ -57,6 +60,9 @@ public class UpdaterService extends IntentService {
         try {
             JSONArray array = RemoteEndpointUtil.fetchJsonArray();
             if (array == null) {
+                sendBroadcast(new Intent(BROADCAST_ACTION_STATE_CHANGE)
+                        .putExtra(EXTRA_REFRESHING,false)
+                        .putExtra(GENERIC_PROBLEM,true));
                 throw new JSONException("Invalid parsed item array" );
             }
 
@@ -81,7 +87,7 @@ public class UpdaterService extends IntentService {
             Log.e(TAG, "Error updating content.", e);
         }
 
-        sendStickyBroadcast(
-                new Intent(BROADCAST_ACTION_STATE_CHANGE).putExtra(EXTRA_REFRESHING, false));
+        sendBroadcast(new Intent(BROADCAST_ACTION_STATE_CHANGE)
+                .putExtra(EXTRA_REFRESHING, false));
     }
 }

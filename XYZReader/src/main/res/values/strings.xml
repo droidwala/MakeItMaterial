@@ -9,4 +9,7 @@
 
     <string name="up">Up</string>
 
+    <string name="network_connection_msg">Unable to fetch data due to poor network connection..Please try again!</string>
+    <string name="generic_error_msg">DUH! We are not sure what happened there..Please try again!</string>
+    <string name="snackbar_retry_action">RETRY</string>
 </resources>

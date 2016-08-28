@@ -8,6 +8,9 @@ import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -32,7 +35,7 @@ import com.example.xyzreader.data.UpdaterService;
 public class ArticleListActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
 
-    private Toolbar mToolbar;
+    private CoordinatorLayout coordinatorLayout;
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private RecyclerView mRecyclerView;
 
@@ -41,22 +44,27 @@ public class ArticleListActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_article_list);
 
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-
+        //Setting up views
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.parent);
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
-
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+
+        //Prepare the loader
         getLoaderManager().initLoader(0, null, this);
 
         if (savedInstanceState == null) {
             refresh();
         }
+
+        setUpSwipeRefreshListener();
     }
 
+    //Makes call to RemoteEndpoint(dropbox) to fetch data.json
     private void refresh() {
         startService(new Intent(this, UpdaterService.class));
     }
 
+    //Register Broadcast Receiver to listen to results obtained from RemoteEndPoint
     @Override
     protected void onStart() {
         super.onStart();
@@ -64,6 +72,7 @@ public class ArticleListActivity extends AppCompatActivity implements
                 new IntentFilter(UpdaterService.BROADCAST_ACTION_STATE_CHANGE));
     }
 
+    //Unregister receiver
     @Override
     protected void onStop() {
         super.onStop();
@@ -71,26 +80,84 @@ public class ArticleListActivity extends AppCompatActivity implements
     }
 
     private boolean mIsRefreshing = false;
+    private boolean network_issue = false;
+    private boolean unknown_issue = false;
 
     private BroadcastReceiver mRefreshingReceiver = new BroadcastReceiver() {
+        //Update the UI depending on the result obtained inside onReceive
         @Override
         public void onReceive(Context context, Intent intent) {
             if (UpdaterService.BROADCAST_ACTION_STATE_CHANGE.equals(intent.getAction())) {
                 mIsRefreshing = intent.getBooleanExtra(UpdaterService.EXTRA_REFRESHING, false);
+                network_issue = intent.getBooleanExtra(UpdaterService.NETWORK_PROBLEM,false);
+
+                if(network_issue){
+                    showSnackBar(true);//shows snackbar with network connection issue text
+                }
+                if(unknown_issue){
+                    showSnackBar(false);//shows snackbar with generic error text
+                }
                 updateRefreshingUI();
             }
         }
     };
 
+    /**
+     * UI CHANGES
+     */
+    //Updates SwipeRefreshLayout state depending on the result obtained inside onReceive of Broadcast Receiver
     private void updateRefreshingUI() {
         mSwipeRefreshLayout.setRefreshing(mIsRefreshing);
     }
 
+    private void showSnackBar(boolean internet_issue){
+        String snackbar_txt;
+        if(internet_issue){
+            snackbar_txt = getString(R.string.network_connection_msg);
+        }
+        else{
+            snackbar_txt = getString(R.string.generic_error_msg);
+        }
+
+        Snackbar snackbar = Snackbar.make(coordinatorLayout,
+                snackbar_txt,
+                Snackbar.LENGTH_LONG)
+                .setAction(getString(R.string.snackbar_retry_action), new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        refresh();
+                    }
+                })
+                .setActionTextColor(ContextCompat.getColor(this,R.color.colorYellow));
+
+        View snackbarView = snackbar.getView();
+        snackbarView.setBackgroundColor(ContextCompat.getColor(this,R.color.colorAccent));
+
+        snackbar.show();
+    }
+
+    private void setUpSwipeRefreshListener(){
+        mSwipeRefreshLayout.setColorSchemeColors(ContextCompat.getColor(this,R.color.colorPrimary),
+                ContextCompat.getColor(this,R.color.colorAccent));
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                refresh();
+            }
+        });
+    }
+
+    /**
+     * LOADER METHODS
+     */
+    //Instantiates and returns new loader for given ID
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
         return ArticleLoader.newAllArticlesInstance(this);
     }
 
+    //Called when previously created loader has finished its load
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         Adapter adapter = new Adapter(cursor);
@@ -107,6 +174,9 @@ public class ArticleListActivity extends AppCompatActivity implements
         mRecyclerView.setAdapter(null);
     }
 
+    /**
+     * RecylerView Adapter
+     */
     private class Adapter extends RecyclerView.Adapter<ViewHolder> {
         private Cursor mCursor;
 
