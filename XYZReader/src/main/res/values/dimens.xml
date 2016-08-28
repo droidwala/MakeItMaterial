@@ -10,7 +10,10 @@
     
     <!--Added by us -->
     <!--Article List Screen --> 
-    <dimen name="recyclerview_article_list_padding_top_bottom">16dp</dimen>
+    <dimen name="article_list_padding_top_bottom">16dp</dimen>
+    <dimen name="article_list_row_title_text_padding">8dp</dimen>
+    <dimen name="article_list_row_title_text_padding_bottom">4dp</dimen>
+    <dimen name="article_list_row_subtitle_text_padding">8dp</dimen>
 
 
     <!--Detail Article Screen -->

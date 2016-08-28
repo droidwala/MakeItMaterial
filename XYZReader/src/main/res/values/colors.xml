@@ -16,16 +16,10 @@
 -->
 
 <resources>
-    <color name="photo_placeholder">#ccc</color>
-
-    <color name="theme_primary">#04561A</color>
-    <color name="theme_primary_dark">#04561A</color>
-    <color name="theme_accent">#04561A</color>
-    <color name="ltgray">#ffe0e0e0</color>
-
     <!--theme colors -->
     <color name="colorPrimary">#FF4500</color>
+    <color name="colorAccent">#4AB0EF</color>
+    <color name="colorWhite">#FFFFFF</color>
     <color name="colorBlack">#000000</color>
-    <color name="colorBlue">#4AB0EF</color>
 
 </resources>

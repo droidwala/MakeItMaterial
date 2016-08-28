@@ -31,10 +31,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scrollbars="none"
-            android:paddingTop="@dimen/recyclerview_article_list_padding_top_bottom"
+            android:paddingTop="@dimen/article_list_padding_top_bottom"
             android:paddingLeft="@dimen/list_side_margin"
             android:paddingRight="@dimen/list_side_margin"
-            android:paddingBottom="@dimen/recyclerview_article_list_padding_top_bottom" />
+            android:paddingBottom="@dimen/article_list_padding_top_bottom" />
     </android.support.v4.widget.SwipeRefreshLayout>
 
 </android.support.design.widget.CoordinatorLayout>
